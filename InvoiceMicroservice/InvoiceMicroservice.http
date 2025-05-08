@@ -1,0 +1,6 @@
+@InvoiceMicroservice_HostAddress = http://localhost:5177
+
+GET {{InvoiceMicroservice_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
