@@ -13,5 +13,14 @@ namespace Data.Contexts
         public DbSet<InvoiceEntity> Invoices { get; set; } = null!;
         public DbSet<InvoiceItemEntity> InvoiceItems { get; set; } = null!;
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            // Apply global query filter to exclude soft-deleted invoices
+            modelBuilder.Entity<InvoiceEntity>()
+                .HasQueryFilter(i => !i.IsDeleted);
+
+            base.OnModelCreating(modelBuilder); // Always call base
+        }
+
     }
 }
