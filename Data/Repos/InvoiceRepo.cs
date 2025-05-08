@@ -10,7 +10,67 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Data.Repos
 {
-    public class InvoiceRepo(InvoiceDbContext context)
+    // InvoiceItems are value-like children that shouldn’t be managed outside their parent Invoice.
+    // All creation, updates, and deletions should happen through the Invoice aggregate.
+
+    public interface IInvoiceRepo
+    {
+        Task AddAsync(InvoiceEntity entity);
+        Task UpdateAsync(InvoiceEntity entity);
+        Task SoftDeleteAsync(InvoiceEntity entity);
+        Task HardDeleteAsync(string invoiceId);
+        Task<bool> ExistsAsync(string invoiceId);
+        Task<bool> ExistsIncludingDeletedAsync(string invoiceId);
+
+        /// <summary>
+        /// Retrieves a single invoice matching the given filter condition.
+        /// Includes any specified related navigation properties (e.g., InvoiceItems).
+        /// </summary>
+        Task<InvoiceEntity?> GetAsync(
+            Expression<Func<InvoiceEntity, bool>> where,
+            params Expression<Func<InvoiceEntity, object>>[] includes);
+
+        /// <summary>
+        /// Retrieves a single invoice including soft-deleted ones, matching the given filter condition.
+        /// Used for administrative or audit purposes.
+        /// </summary>
+        Task<InvoiceEntity?> GetIncludingDeletedAsync(
+            Expression<Func<InvoiceEntity, bool>> where,
+            params Expression<Func<InvoiceEntity, object>>[] includes);
+
+        /// <summary>
+        /// Retrieves all invoices matching optional filter/sort conditions,
+        /// including any navigation properties.
+        /// </summary>
+        Task<IEnumerable<InvoiceEntity>> GetAllAsync(
+            Expression<Func<InvoiceEntity, bool>>? where = null,
+            Expression<Func<InvoiceEntity, object>>? sortBy = null,
+            bool orderByDescending = false,
+            params Expression<Func<InvoiceEntity, object>>[] includes);
+
+        /// <summary>
+        /// Retrieves invoices as a projected shape (TSelect), useful for DTOs or summaries.
+        /// Includes filtering, sorting, and eager loading support.
+        /// </summary>
+        Task<IEnumerable<TSelect>> GetAllAsync<TSelect>(
+            Expression<Func<InvoiceEntity, TSelect>> selector,
+            Expression<Func<InvoiceEntity, bool>>? where = null,
+            Expression<Func<InvoiceEntity, object>>? sortBy = null,
+            bool orderByDescending = false,
+            params Expression<Func<InvoiceEntity, object>>[] includes);
+
+        /// <summary>
+        /// Retrieves all invoices including soft-deleted ones.
+        /// Used for administrative or audit purposes.
+        /// Supports sorting and eager loading of navigation properties.
+        /// </summary>
+        Task<IEnumerable<InvoiceEntity>> GetAllIncludingDeletedAsync(
+            Expression<Func<InvoiceEntity, object>>? sortBy = null,
+            bool orderByDescending = false,
+            params Expression<Func<InvoiceEntity, object>>[] includes);
+    }
+
+    public class InvoiceRepo(InvoiceDbContext context) : IInvoiceRepo
     {
         protected readonly InvoiceDbContext _context = context;
 
