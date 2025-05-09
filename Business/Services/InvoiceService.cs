@@ -14,6 +14,7 @@ namespace Business.Services
     public interface IInvoiceService
     {
         Task<IEnumerable<InvoiceModel>> GetInvoicesForUserAsync(string userId);
+        Task<IEnumerable<InvoiceModel>> GetAllInvoicesAsync();
     }
 
     public class InvoiceService(IInvoiceRepo invoiceRepo, IMappingFactory<InvoiceEntity, InvoiceModel> mappingFactory) : IInvoiceService
@@ -36,6 +37,16 @@ namespace Business.Services
                 includes: i => i.InvoiceItems
             );
 
+            return invoices.Select(_mappingFactory.MapToModel);
+        }
+
+        public async Task<IEnumerable<InvoiceModel>> GetAllInvoicesAsync()
+        {
+            var invoices = await _invoiceRepo.GetAllAsync(
+                sortBy: i => i.Created,
+                orderByDescending: true,
+                includes: i => i.InvoiceItems
+            );
             return invoices.Select(_mappingFactory.MapToModel);
         }
     }

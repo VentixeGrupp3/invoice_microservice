@@ -46,5 +46,16 @@ namespace InvoiceMicroservice.Controllers
 
             return Ok(invoices);
         }
+
+        [ApiKeyAuthorize("Admin")]
+        [HttpGet("admin-get-all-invoices")]
+        public async Task<IActionResult> GetAllInvoices()
+        {
+            var invoices = await _invoiceService.GetAllInvoicesAsync();
+            if (!invoices.Any())
+                return NotFound("No invoices found.");
+
+            return Ok(invoices);
+        }
     }
 }
