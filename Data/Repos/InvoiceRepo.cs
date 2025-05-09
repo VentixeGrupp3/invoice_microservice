@@ -19,8 +19,9 @@ namespace Data.Repos
         Task UpdateAsync(InvoiceEntity entity);
         Task SoftDeleteAsync(InvoiceEntity entity);
         Task HardDeleteAsync(string invoiceId);
-        Task<bool> ExistsAsync(string invoiceId);
+        Task<bool> InvoiceExistsAsync(string invoiceId);
         Task<bool> ExistsIncludingDeletedAsync(string invoiceId);
+        Task<bool> UserExistsAsync(string userId);
 
         /// <summary>
         /// Retrieves a single invoice matching the given filter condition.
@@ -103,9 +104,13 @@ namespace Data.Repos
             }
         }
 
-        public async Task<bool> ExistsAsync(string invoiceId)
+        public async Task<bool> InvoiceExistsAsync(string invoiceId)
         {
             return await _context.Invoices.AnyAsync(i => i.InvoiceId == invoiceId);
+        }
+        public async Task<bool> UserExistsAsync(string userId)
+        {
+            return await _context.Invoices.AnyAsync(i => i.UserId == userId);
         }
 
         public async Task<bool> ExistsIncludingDeletedAsync(string invoiceId)

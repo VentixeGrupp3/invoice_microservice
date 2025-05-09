@@ -1,5 +1,9 @@
+using Business.Factories;
+using Business.Models;
+using Business.Services;
 using Data.Contexts;
 using Data.Data.Seed;
+using Data.Entities;
 using Data.Repos;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -70,15 +74,19 @@ builder.Services.AddDbContext<InvoiceDbContext>(options =>
 
 builder.Services.AddScoped<IInvoiceRepo, InvoiceRepo>();
 
+builder.Services.AddScoped<IInvoiceService, InvoiceService>();
+
+builder.Services.AddScoped<IMappingFactory<InvoiceEntity, InvoiceModel>, InvoiceMappingFactory>();
+
 var app = builder.Build();
 
 // This is purely for seeding data
-using (var scope = app.Services.CreateScope())
+/*using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<InvoiceDbContext>();
     db.Database.EnsureCreated(); // Optional: auto-create DB if needed
     InvoiceSeeder.SeedTestInvoices(db);
-}
+}*/
 
 
 // Configure the HTTP request pipeline.
