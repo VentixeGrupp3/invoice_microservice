@@ -16,6 +16,7 @@ namespace Business.Factories
             {
                 BookingId = model.BookingId,
                 EventId = model.EventId,
+                UserId = model.UserId,
                 InvoicePaid = model.InvoicePaid,
                 IssuedDate = model.IssuedDate,
                 DueDate = model.DueDate,
@@ -51,6 +52,7 @@ namespace Business.Factories
                 InvoiceId = entity.InvoiceId,
                 BookingId = entity.BookingId,
                 EventId = entity.EventId,
+                UserId = entity.UserId,
                 InvoicePaid = entity.InvoicePaid,
                 IssuedDate = entity.IssuedDate,
                 DueDate = entity.DueDate,

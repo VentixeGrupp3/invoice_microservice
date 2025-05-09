@@ -11,6 +11,7 @@ namespace Business.Models
         public string InvoiceId { get; set; } = null!;
         public string BookingId { get; set; } = null!;
         public string EventId { get; set; } = null!;
+        public string UserId { get; set; } = null!;
 
         // Status
         public bool InvoicePaid { get; set; }

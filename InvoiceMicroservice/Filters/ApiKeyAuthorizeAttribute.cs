@@ -6,7 +6,13 @@ namespace InvoiceMicroservice.Filters
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
     public sealed class ApiKeyAuthorizeAttribute : Attribute, IAsyncActionFilter
     {
+        private readonly string? _requiredRole;
         private const string ApiKeyHeaderName = "x-api-key";
+
+        public ApiKeyAuthorizeAttribute(string? requiredRole = null)
+        {
+            _requiredRole = requiredRole;
+        }
 
         public async Task OnActionExecutionAsync(ActionExecutingContext ctx, ActionExecutionDelegate next)
         {
@@ -20,16 +26,17 @@ namespace InvoiceMicroservice.Filters
                 return;
             }
 
+            string? role = null;
+
             if (string.Equals(suppliedKey, adminKey, StringComparison.Ordinal))
             {
-                ctx.HttpContext.Items["Role"] = "Admin";
-                // optionally add admin ID
+                role = "Admin";
             }
             else if (string.Equals(suppliedKey, userKey, StringComparison.Ordinal))
             {
-                ctx.HttpContext.Items["Role"] = "User";
+                role = "User";
 
-                // If you're using a second header to identify user
+                // Require x-user-id for user role
                 if (!ctx.HttpContext.Request.Headers.TryGetValue("x-user-id", out var userId) || string.IsNullOrWhiteSpace(userId))
                 {
                     ctx.Result = new UnauthorizedObjectResult("Missing x-user-id header");
@@ -44,7 +51,17 @@ namespace InvoiceMicroservice.Filters
                 return;
             }
 
+            ctx.HttpContext.Items["Role"] = role;
+
+            // Enforce required role if specified
+            if (!string.IsNullOrEmpty(_requiredRole) && !string.Equals(role, _requiredRole, StringComparison.OrdinalIgnoreCase))
+            {
+                ctx.Result = new ForbidResult();
+                return;
+            }
+
             await next();
         }
     }
 }
+

@@ -25,28 +25,19 @@ namespace InvoiceMicroservice.Controllers
             return Ok("Swagger is working!");
         }
 
-        [ApiKeyAuthorize]
+        [ApiKeyAuthorize("User")]
         [HttpGet("user-test")]
         public IActionResult UserTest()
         {
-            var role = HttpContext.Items["Role"]?.ToString();
             var userId = HttpContext.Items["UserId"]?.ToString();
-
-            if (role != "User")
-                return Forbid("Access denied. Only users may access this endpoint.");
-
             return Ok($"✅ User access confirmed. User ID: {userId}");
         }
 
-        [ApiKeyAuthorize]
+        // Now only accessible by admins
+        [ApiKeyAuthorize("Admin")]
         [HttpGet("admin-test")]
         public IActionResult AdminTest()
         {
-            var role = HttpContext.Items["Role"]?.ToString();
-
-            if (role != "Admin")
-                return Forbid("Access denied. Only admins may access this endpoint.");
-
             return Ok("✅ Admin access confirmed.");
         }
     }

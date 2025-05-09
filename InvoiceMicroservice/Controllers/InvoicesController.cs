@@ -1,4 +1,5 @@
-﻿using Business.Services;
+﻿using Business.Forms;
+using Business.Services;
 using InvoiceMicroservice.Filters;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,16 +13,31 @@ namespace InvoiceMicroservice.Controllers
     {
         private readonly IInvoiceService _invoiceService = invoiceService;
 
+        [ApiKeyAuthorize("User")]
         [HttpGet("user-invoices")]
-        public async Task <IActionResult> GetMyInvoices()
+        public async Task<IActionResult> GetMyInvoices()
         {
-            var role = HttpContext.Items["Role"]?.ToString();
-            if (role != "User")
-                return Forbid("Access denied. Only users may access this endpoint.");
-
             var userId = HttpContext.Items["UserId"]?.ToString();
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized("User ID header is missing.");
+
+            var invoices = await _invoiceService.GetInvoicesForUserAsync(userId);
+
+            if (!invoices.Any())
+                return NotFound($"No invoices found for user {userId}");
+
+            return Ok(invoices);
+        }
+
+        [ApiKeyAuthorize("Admin")]
+        [HttpGet("admin-get-users-invoices")]
+        public async Task<IActionResult> GetUsersInvoices(UserIdForm form)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var userId = form.UserId;
 
             var invoices = await _invoiceService.GetInvoicesForUserAsync(userId);
 

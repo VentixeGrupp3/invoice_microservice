@@ -7,10 +7,11 @@ using System.Threading.Tasks;
 using Swashbuckle.AspNetCore.Annotations;
 namespace Business.Forms
 {
+    [SwaggerSchema("This form is used to test POST requests in Swagger UI. Enter a test word and submit.")]
     public class SwaggerTestForm
     {
         [Required]
-        [SwaggerSchema("Test word", ReadOnly = true)]
-        public string TestWord { get; set; }
+        [SwaggerSchema("Any test word you want to submit. Used to verify Swagger is working.", Nullable = false)]
+        public string TestWord { get; set; } = string.Empty;
     }
 }

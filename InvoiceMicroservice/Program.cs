@@ -20,6 +20,7 @@ builder.Services.AddSwaggerGen(options =>
         Title = "InvoiceMicroservice API",
         Version = "v1"
     });
+    options.EnableAnnotations();
     options.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme
     {
         Description = "API Key needed to access the endpoints. Example: 'x-api-key: your-key-here'",
