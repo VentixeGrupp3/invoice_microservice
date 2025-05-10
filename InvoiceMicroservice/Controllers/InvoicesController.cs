@@ -99,6 +99,27 @@ namespace InvoiceMicroservice.Controllers
 
             return Ok(result.Invoice);
         }
+
+
+        [ApiKeyAuthorize("Admin")]
+        [HttpPost("admin-invoice-creation")]
+        public async Task<IActionResult> ManuallyCreateInvoice(ManuallyCreateInvoiceForm form)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result = await _invoiceService.ManuallyCreateInvoiceAsync(form);
+            if (!result.Success)
+                return StatusCode(result.StatusCode, result.ErrorMessage);
+
+            return CreatedAtAction(nameof(GetUserInvoiceById), new { invoiceId = result.Invoice.InvoiceId }, result.Invoice);
+        }
+
+
+
+
         #endregion
     }
 }
