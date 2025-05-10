@@ -2,7 +2,9 @@
 using Business.Services;
 using InvoiceMicroservice.Filters;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Business.Models;
 
 namespace InvoiceMicroservice.Controllers
 {
@@ -12,6 +14,8 @@ namespace InvoiceMicroservice.Controllers
     public class InvoicesController(IInvoiceService invoiceService) : ControllerBase
     {
         private readonly IInvoiceService _invoiceService = invoiceService;
+
+        #region User Endpoints
 
         [ApiKeyAuthorize("User")]
         [HttpGet("user-invoices")]
@@ -28,6 +32,31 @@ namespace InvoiceMicroservice.Controllers
 
             return Ok(invoices);
         }
+
+        [ApiKeyAuthorize("User")]
+        [HttpGet("user-invoice/{invoiceId}")]
+        public async Task<IActionResult> GetInvoiceById(string invoiceId)
+        {
+
+            var userId = HttpContext.Items["UserId"]?.ToString();
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized("User ID header is missing.");
+
+
+            var result = await _invoiceService.GetInvoiceByIdAsync(invoiceId);
+
+            if (!result.Success)
+                return StatusCode(result.StatusCode, result.ErrorMessage);
+
+            if (result.Invoice.UserId != userId)
+                return StatusCode(StatusCodes.Status403Forbidden, "You do not have permission to view this invoice. Your UserId does NOT match the UserId on the Invoice you requested.");
+
+            return Ok(result.Invoice);
+        }
+
+        #endregion
+
+        #region Admin Endpoints
 
         [ApiKeyAuthorize("Admin")]
         [HttpGet("admin-get-users-invoices")]
@@ -57,5 +86,19 @@ namespace InvoiceMicroservice.Controllers
 
             return Ok(invoices);
         }
+
+
+        [ApiKeyAuthorize("Admin")]
+        [HttpGet("admin-get-user-invoice/{invoiceId}")]
+        public async Task<IActionResult> GetUserInvoiceById(string invoiceId)
+        {
+            var result = await _invoiceService.GetInvoiceByIdAsync(invoiceId);
+
+            if (!result.Success)
+                return StatusCode(result.StatusCode, result.ErrorMessage);
+
+            return Ok(result.Invoice);
+        }
+        #endregion
     }
 }

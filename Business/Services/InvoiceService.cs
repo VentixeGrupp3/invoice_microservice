@@ -15,6 +15,7 @@ namespace Business.Services
     {
         Task<IEnumerable<InvoiceModel>> GetInvoicesForUserAsync(string userId);
         Task<IEnumerable<InvoiceModel>> GetAllInvoicesAsync();
+        Task<InvoiceResult> GetInvoiceByIdAsync(string invoiceId);
     }
 
     public class InvoiceService(IInvoiceRepo invoiceRepo, IMappingFactory<InvoiceEntity, InvoiceModel> mappingFactory) : IInvoiceService
@@ -48,6 +49,30 @@ namespace Business.Services
                 includes: i => i.InvoiceItems
             );
             return invoices.Select(_mappingFactory.MapToModel);
+        }
+
+        public async Task<InvoiceResult> GetInvoiceByIdAsync(string invoiceId)
+        {
+            var invoice = await _invoiceRepo.GetAsync(
+                where: i => i.InvoiceId == invoiceId,
+                includes: i => i.InvoiceItems
+            );
+            if (invoice == null)
+            {
+                return new InvoiceResult
+                {
+                    Success = false,
+                    StatusCode = 404,
+                    ErrorMessage = "Invoice not found."
+                };
+            }
+
+            return new InvoiceResult
+            {
+                Success = true,
+                StatusCode = 200,
+                Invoice = _mappingFactory.MapToModel(invoice)
+            };
         }
     }
 }
