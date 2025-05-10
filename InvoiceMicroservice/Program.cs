@@ -1,4 +1,5 @@
 using Business.Factories;
+using Business.Forms;
 using Business.Models;
 using Business.Services;
 using Data.Contexts;
@@ -78,6 +79,8 @@ builder.Services.AddScoped<IInvoiceRepo, InvoiceRepo>();
 builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 
 builder.Services.AddScoped<IMappingFactory<InvoiceEntity, InvoiceModel>, InvoiceMappingFactory>();
+builder.Services.AddScoped<IUpdateMappingFactory<InvoiceEntity, UpdateInvoiceForm>, UpdateInvoiceMappingFactory>();
+
 
 var app = builder.Build();
 

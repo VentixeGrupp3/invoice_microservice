@@ -18,12 +18,17 @@ namespace Business.Services
         Task<IEnumerable<InvoiceModel>> GetAllInvoicesAsync();
         Task<InvoiceResult> GetInvoiceByIdAsync(string invoiceId);
         Task<InvoiceResult> ManuallyCreateInvoiceAsync(ManuallyCreateInvoiceForm form);
+        Task<InvoiceResult> UpdateInvoiceAsync(UpdateInvoiceForm form);
     }
 
-    public class InvoiceService(IInvoiceRepo invoiceRepo, IMappingFactory<InvoiceEntity, InvoiceModel> mappingFactory) : IInvoiceService
+    public class InvoiceService(
+        IInvoiceRepo invoiceRepo,
+        IMappingFactory<InvoiceEntity, InvoiceModel> mappingFactory,
+        IUpdateMappingFactory<InvoiceEntity, UpdateInvoiceForm> updateMappingFactory) : IInvoiceService
     {
         private readonly IInvoiceRepo _invoiceRepo = invoiceRepo;
         private readonly IMappingFactory<InvoiceEntity, InvoiceModel> _mappingFactory = mappingFactory;
+        private readonly IUpdateMappingFactory<InvoiceEntity, UpdateInvoiceForm> _updateMappingFactory = updateMappingFactory;
 
 
         public async Task<IEnumerable<InvoiceModel>> GetInvoicesForUserAsync(string userId)
@@ -146,6 +151,47 @@ namespace Business.Services
                 Success = true,
                 StatusCode = 201,
                 Invoice = invoiceModel
+            };
+        }
+
+        public async Task<InvoiceResult> UpdateInvoiceAsync(UpdateInvoiceForm form)
+        {
+            var invoice = await _invoiceRepo.GetAsync(
+                i => i.InvoiceId == form.InvoiceId,
+                i => i.InvoiceItems);
+
+            if (invoice == null)
+            {
+                return new InvoiceResult
+                {
+                    Success = false,
+                    StatusCode = 404,
+                    ErrorMessage = "Invoice not found."
+                };
+            }
+
+            // Validation check to ensure IDs match
+            if (invoice.UserId != form.UserId ||
+                invoice.BookingId != form.BookingId ||
+                invoice.EventId != form.EventId)
+            {
+                return new InvoiceResult
+                {
+                    Success = false,
+                    StatusCode = 400,
+                    ErrorMessage = "Provided IDs do not match the invoice record. Update aborted to prevent data inconsistency."
+                };
+            }
+
+            _updateMappingFactory.MapFormToExistingEntity(form, invoice);
+
+            await _invoiceRepo.UpdateAsync(invoice);
+
+            return new InvoiceResult
+            {
+                Success = true,
+                StatusCode = 200,
+                Invoice = _mappingFactory.MapToModel(invoice)
             };
         }
     }

@@ -17,10 +17,12 @@ namespace Business.Factories
                 BookingId = model.BookingId,
                 EventId = model.EventId,
                 UserId = model.UserId,
+
                 InvoicePaid = model.InvoicePaid,
                 IssuedDate = model.IssuedDate,
                 DueDate = model.DueDate,
                 Created = model.Created == default ? DateTime.UtcNow : model.Created,
+
                 Subtotal = model.Subtotal,
                 Tax = model.Tax,
                 Fee = model.Fee,
@@ -35,6 +37,18 @@ namespace Business.Factories
                 UserEmail = model.UserEmail,
                 UserAddress = model.UserAddress,
                 UserPhone = model.UserPhone,
+
+                // Adjustment metadata
+                ManuallyAdjusted = model.ManuallyAdjusted,
+                AdjustedBy = model.AdjustedBy,
+                AdjustedDate = model.AdjustedDate,
+                AdjustmentReason = model.AdjustmentReason,
+
+                // Deletion metadata
+                IsDeleted = model.IsDeleted,
+                DeletionReason = model.DeletionReason,
+                DeletedAt = model.DeletedAt,
+                DeletedBy = model.DeletedBy,
 
                 InvoiceItems = model.Items.Select(i => new InvoiceItemEntity
                 {
@@ -53,10 +67,12 @@ namespace Business.Factories
                 BookingId = entity.BookingId,
                 EventId = entity.EventId,
                 UserId = entity.UserId,
+
                 InvoicePaid = entity.InvoicePaid,
                 IssuedDate = entity.IssuedDate,
                 DueDate = entity.DueDate,
                 Created = entity.Created,
+
                 Subtotal = entity.Subtotal,
                 Tax = entity.Tax,
                 Fee = entity.Fee,
@@ -78,7 +94,17 @@ namespace Business.Factories
                     TicketCategory = i.TicketCategory,
                     Price = i.Price,
                     Quantity = i.Quantity
-                }).ToList()
+                }).ToList(),
+
+                ManuallyAdjusted = entity.ManuallyAdjusted,
+                AdjustedBy = entity.AdjustedBy,
+                AdjustedDate = entity.AdjustedDate,
+                AdjustmentReason = entity.AdjustmentReason,
+
+                IsDeleted = entity.IsDeleted,
+                DeletionReason = entity.DeletionReason,
+                DeletedAt = entity.DeletedAt,
+                DeletedBy = entity.DeletedBy
             };
         }
     }

@@ -41,5 +41,17 @@ namespace Business.Models
 
         // Invoice Items
         public List<InvoiceItemModel> Items { get; set; } = new();
+
+        // Adjustment Metadata
+        public bool ManuallyAdjusted { get; set; }
+        public string? AdjustedBy { get; set; }
+        public DateTime? AdjustedDate { get; set; }
+        public string? AdjustmentReason { get; set; }
+
+        // Deletion Metadata
+        public bool IsDeleted { get; set; }
+        public string? DeletionReason { get; set; }
+        public DateTime? DeletedAt { get; set; }
+        public string? DeletedBy { get; set; }
     }
 }
