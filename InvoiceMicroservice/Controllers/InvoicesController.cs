@@ -54,6 +54,22 @@ namespace InvoiceMicroservice.Controllers
             return Ok(result.Invoice);
         }
 
+        [ApiKeyAuthorize("User")]
+        [HttpPut("user-pay-invoice/{invoiceId}")]
+        public async Task<IActionResult> PayInvoice(string invoiceId)
+        {
+            var userId = HttpContext.Items["UserId"]?.ToString();
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized("User ID header is missing.");
+
+            var result = await _invoiceService.MarkInvoicePaidAsync(invoiceId, userId);
+
+            if (!result.Success)
+                return StatusCode(result.StatusCode, result.ErrorMessage);
+
+            return Ok(result.Invoice);
+        }
+
         #endregion
 
         #region Admin Endpoints
@@ -128,6 +144,18 @@ namespace InvoiceMicroservice.Controllers
         }
 
         [ApiKeyAuthorize("Admin")]
+        [HttpPut("admin-pay-invoice/{invoiceId}")]
+        public async Task<IActionResult> AdminPayInvoice(string invoiceId)
+        {
+            var result = await _invoiceService.MarkInvoicePaidAsAdminAsync(invoiceId);
+
+            if (!result.Success)
+                return StatusCode(result.StatusCode, result.ErrorMessage);
+
+            return Ok(result.Invoice);
+        }
+
+        [ApiKeyAuthorize("Admin")]
         [HttpPut("admin-soft-delete-invoice")]
         public async Task<IActionResult> SoftDeleteInvoice(SoftDeleteInvoiceForm form)
         {
@@ -150,6 +178,7 @@ namespace InvoiceMicroservice.Controllers
                 return StatusCode(result.StatusCode, result.ErrorMessage);
             return NoContent();
         }
+
 
         #endregion
     }

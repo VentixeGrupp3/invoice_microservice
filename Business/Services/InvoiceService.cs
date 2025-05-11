@@ -21,6 +21,8 @@ namespace Business.Services
         Task<InvoiceResult> UpdateInvoiceAsync(UpdateInvoiceForm form);
         Task<InvoiceResult> SoftDeleteInvoiceAsync(SoftDeleteInvoiceForm form);
         Task<InvoiceResult> DeleteInvoiceAsync(string id);
+        Task<InvoiceResult> MarkInvoicePaidAsync(string invoiceId, string userId);
+        Task<InvoiceResult> MarkInvoicePaidAsAdminAsync(string invoiceId);
     }
 
     public class InvoiceService(
@@ -226,10 +228,8 @@ namespace Business.Services
                 };
             }
 
-            // apply your soft‐delete mapping
             _softDeleteMapper.MapFormToExistingEntity(form, invoice);
 
-            // save
             await _invoiceRepo.UpdateAsync(invoice);
 
             return new InvoiceResult
@@ -241,7 +241,6 @@ namespace Business.Services
         }
         public async Task<InvoiceResult> DeleteInvoiceAsync(string id)
         {
-            // 1) Verify it exists
             var invoice = await _invoiceRepo.GetAsync(i => i.InvoiceId == id);
             if (invoice == null)
             {
@@ -253,14 +252,89 @@ namespace Business.Services
                 };
             }
 
-            // 2) Delete it
             await _invoiceRepo.HardDeleteAsync(id);
 
-            // 3) Return 204 No Content
             return new InvoiceResult
             {
                 Success = true,
                 StatusCode = 204
+            };
+        }
+
+        public async Task<InvoiceResult> MarkInvoicePaidAsync(string invoiceId, string userId)
+        {
+            var invoice = await _invoiceRepo.GetAsync(
+                i => i.InvoiceId == invoiceId,
+                i => i.InvoiceItems);
+
+            if (invoice == null)
+                return new InvoiceResult
+                {
+                    Success = false,
+                    StatusCode = 404,
+                    ErrorMessage = "Invoice not found."
+                };
+
+            if (invoice.UserId != userId)
+                return new InvoiceResult
+                {
+                    Success = false,
+                    StatusCode = 403,
+                    ErrorMessage = "You do not have permission to pay this invoice."
+                };
+
+            if (invoice.InvoicePaid)
+                return new InvoiceResult
+                {
+                    Success = false,
+                    StatusCode = 400,
+                    ErrorMessage = "Invoice is already marked as paid."
+                };
+
+            // FUTURE IDEA call BookingMicroservice (via gRPC or HTTP) to mark the underlying booking as paid
+            // e.g. await _bookingClient.MarkBookingPaidAsync(invoice.BookingId);
+
+            invoice.InvoicePaid = true;
+            await _invoiceRepo.UpdateAsync(invoice);
+
+            return new InvoiceResult
+            {
+                Success = true,
+                StatusCode = 200,
+                Invoice = _mappingFactory.MapToModel(invoice)
+            };
+        }
+
+        public async Task<InvoiceResult> MarkInvoicePaidAsAdminAsync(string invoiceId)
+        {
+            var invoice = await _invoiceRepo.GetAsync(i => i.InvoiceId == invoiceId);
+            if (invoice == null)
+                return new InvoiceResult
+                {
+                    Success = false,
+                    StatusCode = 404,
+                    ErrorMessage = "Invoice not found."
+                };
+
+            if (invoice.InvoicePaid)
+                return new InvoiceResult
+                {
+                    Success = false,
+                    StatusCode = 400,
+                    ErrorMessage = "Invoice is already marked as paid."
+                };
+
+            // FUTURE IDEA call BookingMicroservice (via gRPC or HTTP) to mark the underlying booking as paid
+            // // e.g. await _bookingClient.MarkBookingPaidAsync(invoice.BookingId);
+
+            invoice.InvoicePaid = true;
+            await _invoiceRepo.UpdateAsync(invoice);
+
+            return new InvoiceResult
+            {
+                Success = true,
+                StatusCode = 200,
+                Invoice = _mappingFactory.MapToModel(invoice)
             };
         }
     }
