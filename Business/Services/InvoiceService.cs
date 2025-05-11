@@ -20,6 +20,7 @@ namespace Business.Services
         Task<InvoiceResult> ManuallyCreateInvoiceAsync(ManuallyCreateInvoiceForm form);
         Task<InvoiceResult> UpdateInvoiceAsync(UpdateInvoiceForm form);
         Task<InvoiceResult> SoftDeleteInvoiceAsync(SoftDeleteInvoiceForm form);
+        Task<InvoiceResult> DeleteInvoiceAsync(string id);
     }
 
     public class InvoiceService(
@@ -236,6 +237,30 @@ namespace Business.Services
                 Success = true,
                 StatusCode = 200,
                 Invoice = _mappingFactory.MapToModel(invoice)
+            };
+        }
+        public async Task<InvoiceResult> DeleteInvoiceAsync(string id)
+        {
+            // 1) Verify it exists
+            var invoice = await _invoiceRepo.GetAsync(i => i.InvoiceId == id);
+            if (invoice == null)
+            {
+                return new InvoiceResult
+                {
+                    Success = false,
+                    StatusCode = 404,
+                    ErrorMessage = $"Invoice with ID '{id}' was not found."
+                };
+            }
+
+            // 2) Delete it
+            await _invoiceRepo.HardDeleteAsync(id);
+
+            // 3) Return 204 No Content
+            return new InvoiceResult
+            {
+                Success = true,
+                StatusCode = 204
             };
         }
     }

@@ -17,7 +17,6 @@ namespace Data.Repos
     {
         Task AddAsync(InvoiceEntity entity);
         Task UpdateAsync(InvoiceEntity entity);
-        Task SoftDeleteAsync(InvoiceEntity entity);
         Task HardDeleteAsync(string invoiceId);
         Task<bool> ExistsAsync(Expression<Func<InvoiceEntity, bool>> predicate, bool includeDeleted = false);
 
@@ -80,11 +79,6 @@ namespace Data.Repos
         }
 
         public async Task UpdateAsync(InvoiceEntity entity)
-        {
-            _context.Invoices.Update(entity);
-            await _context.SaveChangesAsync();
-        }
-        public async Task SoftDeleteAsync(InvoiceEntity entity)
         {
             _context.Invoices.Update(entity);
             await _context.SaveChangesAsync();

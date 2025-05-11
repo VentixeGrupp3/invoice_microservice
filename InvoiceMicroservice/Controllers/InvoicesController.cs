@@ -141,7 +141,15 @@ namespace InvoiceMicroservice.Controllers
 
             return Ok(result.Invoice);
         }
+        [HttpDelete("admin-hard-delete-invoice/{id}")]
+        public async Task<IActionResult> HardDeleteInvoice(string id)
+        {
+            var result = await _invoiceService.DeleteInvoiceAsync(id);
 
+            if (!result.Success)
+                return StatusCode(result.StatusCode, result.ErrorMessage);
+            return NoContent();
+        }
 
         #endregion
     }
