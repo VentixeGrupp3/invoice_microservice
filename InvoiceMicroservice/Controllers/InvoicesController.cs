@@ -60,13 +60,8 @@ namespace InvoiceMicroservice.Controllers
 
         [ApiKeyAuthorize("Admin")]
         [HttpGet("admin-get-users-invoices")]
-        public async Task<IActionResult> GetUsersInvoices(UserIdForm form)
+        public async Task<IActionResult> GetUsersInvoices(string userId)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-            var userId = form.UserId;
 
             var invoices = await _invoiceService.GetInvoicesForUserAsync(userId);
 
@@ -125,6 +120,21 @@ namespace InvoiceMicroservice.Controllers
                 return BadRequest(ModelState);
 
             var result = await _invoiceService.UpdateInvoiceAsync(form);
+
+            if (!result.Success)
+                return StatusCode(result.StatusCode, result.ErrorMessage);
+
+            return Ok(result.Invoice);
+        }
+
+        [ApiKeyAuthorize("Admin")]
+        [HttpPut("admin-soft-delete-invoice")]
+        public async Task<IActionResult> SoftDeleteInvoice(SoftDeleteInvoiceForm form)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var result = await _invoiceService.SoftDeleteInvoiceAsync(form);
 
             if (!result.Success)
                 return StatusCode(result.StatusCode, result.ErrorMessage);

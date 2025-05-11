@@ -19,16 +19,19 @@ namespace Business.Services
         Task<InvoiceResult> GetInvoiceByIdAsync(string invoiceId);
         Task<InvoiceResult> ManuallyCreateInvoiceAsync(ManuallyCreateInvoiceForm form);
         Task<InvoiceResult> UpdateInvoiceAsync(UpdateInvoiceForm form);
+        Task<InvoiceResult> SoftDeleteInvoiceAsync(SoftDeleteInvoiceForm form);
     }
 
     public class InvoiceService(
         IInvoiceRepo invoiceRepo,
         IMappingFactory<InvoiceEntity, InvoiceModel> mappingFactory,
-        IUpdateMappingFactory<InvoiceEntity, UpdateInvoiceForm> updateMappingFactory) : IInvoiceService
+        IUpdateMappingFactory<InvoiceEntity, UpdateInvoiceForm> updateMappingFactory,
+        IUpdateMappingFactory<InvoiceEntity, SoftDeleteInvoiceForm> softDeleteMappingFactory) : IInvoiceService
     {
         private readonly IInvoiceRepo _invoiceRepo = invoiceRepo;
         private readonly IMappingFactory<InvoiceEntity, InvoiceModel> _mappingFactory = mappingFactory;
         private readonly IUpdateMappingFactory<InvoiceEntity, UpdateInvoiceForm> _updateMappingFactory = updateMappingFactory;
+        private readonly IUpdateMappingFactory<InvoiceEntity, SoftDeleteInvoiceForm> _softDeleteMapper = softDeleteMappingFactory;
 
 
         public async Task<IEnumerable<InvoiceModel>> GetInvoicesForUserAsync(string userId)
@@ -169,6 +172,7 @@ namespace Business.Services
                     ErrorMessage = "Invoice not found."
                 };
             }
+            // Maybe? Future integration. Use gRPC to check with BookingMicroservice if the booking exists with same details.
 
             // Validation check to ensure IDs match
             if (invoice.UserId != form.UserId ||
@@ -185,6 +189,46 @@ namespace Business.Services
 
             _updateMappingFactory.MapFormToExistingEntity(form, invoice);
 
+            await _invoiceRepo.UpdateAsync(invoice);
+
+            return new InvoiceResult
+            {
+                Success = true,
+                StatusCode = 200,
+                Invoice = _mappingFactory.MapToModel(invoice)
+            };
+        }
+        public async Task<InvoiceResult> SoftDeleteInvoiceAsync(SoftDeleteInvoiceForm form)
+        {
+            var invoice = await _invoiceRepo.GetAsync(
+                i => i.InvoiceId == form.InvoiceId,
+                i => i.InvoiceItems);
+
+            if (invoice == null)
+                return new InvoiceResult
+                {
+                    Success = false,
+                    StatusCode = 404,
+                    ErrorMessage = "Invoice not found."
+                };
+
+            // verify user/booking/event IDs match to prevent accidents
+            if (invoice.UserId != form.UserId ||
+                invoice.BookingId != form.BookingId ||
+                invoice.EventId != form.EventId)
+            {
+                return new InvoiceResult
+                {
+                    Success = false,
+                    StatusCode = 400,
+                    ErrorMessage = "Provided IDs do not match the invoice record. Delete aborted."
+                };
+            }
+
+            // apply your soft‐delete mapping
+            _softDeleteMapper.MapFormToExistingEntity(form, invoice);
+
+            // save
             await _invoiceRepo.UpdateAsync(invoice);
 
             return new InvoiceResult

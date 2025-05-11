@@ -80,6 +80,7 @@ builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 
 builder.Services.AddScoped<IMappingFactory<InvoiceEntity, InvoiceModel>, InvoiceMappingFactory>();
 builder.Services.AddScoped<IUpdateMappingFactory<InvoiceEntity, UpdateInvoiceForm>, UpdateInvoiceMappingFactory>();
+builder.Services.AddScoped<IUpdateMappingFactory<InvoiceEntity, SoftDeleteInvoiceForm>, SoftDeleteInvoiceMappingFactory>();
 
 
 var app = builder.Build();
