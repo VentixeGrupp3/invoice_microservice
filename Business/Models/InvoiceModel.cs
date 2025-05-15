@@ -28,6 +28,7 @@ namespace Business.Models
         public decimal Total { get; set; }
 
         // Bill From
+        public string EventName { get; set; } = null!;
         public string EventOwnerName { get; set; } = null!;
         public string EventOwnerEmail { get; set; } = null!;
         public string EventOwnerAddress { get; set; } = null!;

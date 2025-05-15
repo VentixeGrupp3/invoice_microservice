@@ -1,3 +1,4 @@
+using Azure.Messaging.ServiceBus;
 using Business.Factories;
 using Business.Forms;
 using Business.Models;
@@ -10,6 +11,16 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy( policy =>
+    {
+        policy.WithOrigins("https://localhost:7293") 
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 
 
 builder.Services.AddControllers();
@@ -73,6 +84,24 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddDbContext<InvoiceDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("SqlConnection")));
 
+// 2) ServiceBusClient + Processor
+builder.Services.AddSingleton(sp =>
+{
+    // Will now find ConnectionStrings:ServiceBus
+    var conn = builder.Configuration.GetConnectionString("ServiceBus");
+    return new ServiceBusClient(conn);
+});
+
+builder.Services.AddSingleton(sp =>
+{
+    var client = sp.GetRequiredService<ServiceBusClient>();
+    var options = new ServiceBusProcessorOptions { AutoCompleteMessages = false };
+    return client.CreateProcessor("create-invoice-entity", options);
+});
+
+// 3) Hosted worker that pumps messages off the queue
+builder.Services.AddHostedService<InvoiceQueueHandler>();
+
 
 builder.Services.AddScoped<IInvoiceRepo, InvoiceRepo>();
 
@@ -105,6 +134,8 @@ app.UseSwaggerUI(options =>
 
 app.UseHttpsRedirection();
 
+
+app.UseCors();
 
 // Authentication is first AND THEN Authorization
 app.UseAuthentication();

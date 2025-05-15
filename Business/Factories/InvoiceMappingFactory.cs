@@ -28,6 +28,7 @@ namespace Business.Factories
                 Fee = model.Fee,
                 Total = model.Total,
 
+                EventName = model.EventName,
                 EventOwnerName = model.EventOwnerName,
                 EventOwnerEmail = model.EventOwnerEmail,
                 EventOwnerAddress = model.EventOwnerAddress,
@@ -78,6 +79,7 @@ namespace Business.Factories
                 Fee = entity.Fee,
                 Total = entity.Total,
 
+                EventName = entity.EventName,
                 EventOwnerName = entity.EventOwnerName,
                 EventOwnerEmail = entity.EventOwnerEmail,
                 EventOwnerAddress = entity.EventOwnerAddress,
