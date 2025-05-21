@@ -96,7 +96,7 @@ builder.Services.AddSingleton(sp =>
 {
     var client = sp.GetRequiredService<ServiceBusClient>();
     var options = new ServiceBusProcessorOptions { AutoCompleteMessages = false };
-    return client.CreateProcessor("create-invoice-entity", options);
+    return client.CreateProcessor("invoice-service", options);
 });
 
 // 3) Hosted worker that pumps messages off the queue

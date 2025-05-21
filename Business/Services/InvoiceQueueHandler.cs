@@ -46,10 +46,10 @@ namespace Business.Services
             {
                 BookingId = msg.BookingId,
                 UserId = msg.UserId,
-                UserName = msg.UserName,
-                UserEmail = msg.UserEmail,
-                UserAddress = msg.UserAddress,
-                UserPhone = msg.UserPhone,
+                UserName = msg.FirstName + " " + msg.LastName,
+                UserEmail = msg.BookingEmail,
+                UserAddress = msg.BookingAddress,
+                UserPhone = msg.BookingPhone,
                 EventId = msg.EventId,
                 EventName = msg.EventName,
                 EventOwnerName = msg.EventOwnerName,
@@ -61,7 +61,7 @@ namespace Business.Services
                 DueDate = DateTime.UtcNow.AddDays(30)
             };
 
-            foreach (var it in msg.Items)
+            foreach (var it in msg.Tickets)
             {
                 invoice.InvoiceItems.Add(new InvoiceItemEntity
                 {

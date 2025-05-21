@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Business.Azure_Dtos
 {
-    public class InvoiceItemDto
+    public class InvoiceTicketDto
     {
         public string TicketCategory { get; set; } = default!;
         public decimal Price { get; set; }

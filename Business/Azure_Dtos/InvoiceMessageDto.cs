@@ -10,10 +10,12 @@ namespace Business.Azure_Dtos
     {
         public string BookingId { get; set; } = default!;
         public string UserId { get; set; } = default!;
-        public string UserName { get; set; } = default!;
-        public string UserEmail { get; set; } = default!;
-        public string UserAddress { get; set; }
-        public string UserPhone { get; set; }
+        public string BookingEmail { get; set; } = default!;
+        public string? BookingPhone { get; set; }
+        public string FirstName { get; set; } = default!;
+        public string LastName { get; set; } = default!;
+        
+        public string? BookingAddress { get; set; }
         public string EventId { get; set; } = default!;
         public string EventName { get; set; } = default!;
         public string EventOwnerName { get; set; } = default!;
@@ -21,6 +23,6 @@ namespace Business.Azure_Dtos
         public string EventOwnerAddress { get; set; } = default!;
         public string EventOwnerPhone { get; set; } = default!;
         public bool InvoicePaid { get; set; }
-        public List<InvoiceItemDto> Items { get; set; } = new();
+        public List<InvoiceTicketDto> Tickets { get; set; } = new();
     }
 }
