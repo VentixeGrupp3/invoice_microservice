@@ -118,7 +118,11 @@ var app = builder.Build();
 /*using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<InvoiceDbContext>();
-    db.Database.EnsureCreated(); // Optional: auto-create DB if needed
+
+    // Apply any pending EF Core migrations
+    db.Database.Migrate();
+
+    // Seed only if still empty
     InvoiceSeeder.SeedTestInvoices(db);
 }*/
 
