@@ -11,9 +11,10 @@ namespace InvoiceMicroservice.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [ApiKeyAuthorize]
-    public class InvoicesController(IInvoiceService invoiceService) : ControllerBase
+    public class InvoicesController(IInvoiceService invoiceService, IInvoicePdfService pdfService) : ControllerBase
     {
         private readonly IInvoiceService _invoiceService = invoiceService;
+        private readonly IInvoicePdfService _pdfService = pdfService;
 
         #region User Endpoints
 
@@ -68,6 +69,32 @@ namespace InvoiceMicroservice.Controllers
                 return StatusCode(result.StatusCode, result.ErrorMessage);
 
             return Ok(result.Invoice);
+        }
+
+        /// Endpoint to get the PDF of an invoice
+        [ApiKeyAuthorize("User")]
+        [HttpGet("user-download-invoice/{invoiceId}/pdf")]
+        public async Task<IActionResult> GetInvoicePdf(string invoiceId)
+        {
+            var userId = HttpContext.Items["UserId"]?.ToString();
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized("User ID header is missing.");
+            // 1) Call service
+            var result = await _invoiceService.GetInvoiceByIdAsync(invoiceId);
+
+            // 2) Handle not-found / errors
+            if (!result.Success || result.Invoice is null)
+                return StatusCode(result.StatusCode, result.ErrorMessage ?? "Unable to generate PDF");
+
+            // 3) Generate PDF from the InvoiceModel
+            byte[] pdfBytes = _pdfService.Generate(result.Invoice);
+
+            // 4) Stream it back as application/pdf attachment
+            return File(
+                pdfBytes,
+                contentType: "application/pdf",
+                fileDownloadName: $"invoice_{invoiceId}.pdf"
+            );
         }
 
         #endregion
@@ -169,6 +196,7 @@ namespace InvoiceMicroservice.Controllers
 
             return Ok(result.Invoice);
         }
+        [ApiKeyAuthorize("Admin")]
         [HttpDelete("admin-hard-delete-invoice/{id}")]
         public async Task<IActionResult> HardDeleteInvoice(string id)
         {
@@ -177,6 +205,29 @@ namespace InvoiceMicroservice.Controllers
             if (!result.Success)
                 return StatusCode(result.StatusCode, result.ErrorMessage);
             return NoContent();
+        }
+
+        /// Endpoint to get the PDF of an invoice
+        [ApiKeyAuthorize("Admin")]
+        [HttpGet("admin-download-invoice/{invoiceId}/pdf")]
+        public async Task<IActionResult> AdminGetInvoicePdf(string invoiceId)
+        {
+            // 1) Call service
+            var result = await _invoiceService.GetInvoiceByIdAsync(invoiceId);
+
+            // 2) Handle not-found / errors
+            if (!result.Success || result.Invoice is null)
+                return StatusCode(result.StatusCode, result.ErrorMessage ?? "Unable to generate PDF");
+
+            // 3) Generate PDF from the InvoiceModel
+            byte[] pdfBytes = _pdfService.Generate(result.Invoice);
+
+            // 4) Stream it back as application/pdf attachment
+            return File(
+                pdfBytes,
+                contentType: "application/pdf",
+                fileDownloadName: $"invoice_{invoiceId}.pdf"
+            );
         }
 
 

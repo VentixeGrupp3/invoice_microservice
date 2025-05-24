@@ -9,14 +9,22 @@ using Data.Entities;
 using Data.Repos;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using QuestPDF;
+using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// This is to use QuestPDF for PDF generation
+Settings.License = LicenseType.Community;
 
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy( policy =>
     {
-        policy.WithOrigins("https://localhost:7293") 
+        policy.WithOrigins(
+                "https://localhost:7293", 
+                "https://localhost:7183"
+                ) // Add PUBLISHED frontend URL here
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
@@ -106,6 +114,8 @@ builder.Services.AddHostedService<InvoiceQueueHandler>();
 builder.Services.AddScoped<IInvoiceRepo, InvoiceRepo>();
 
 builder.Services.AddScoped<IInvoiceService, InvoiceService>();
+
+builder.Services.AddScoped<IInvoicePdfService, InvoicePdfService>();
 
 builder.Services.AddScoped<IMappingFactory<InvoiceEntity, InvoiceModel>, InvoiceMappingFactory>();
 builder.Services.AddScoped<IUpdateMappingFactory<InvoiceEntity, UpdateInvoiceForm>, UpdateInvoiceMappingFactory>();
