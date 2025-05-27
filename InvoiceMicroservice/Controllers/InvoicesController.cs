@@ -29,7 +29,7 @@ namespace InvoiceMicroservice.Controllers
             var invoices = await _invoiceService.GetInvoicesForUserAsync(userId);
 
             if (!invoices.Any())
-                return NotFound($"No invoices found for user {userId}");
+                return NotFound(new List<InvoiceModel>());
 
             return Ok(invoices);
         }
