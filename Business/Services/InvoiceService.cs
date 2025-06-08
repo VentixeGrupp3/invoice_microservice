@@ -241,7 +241,7 @@ namespace Business.Services
         }
         public async Task<InvoiceResult> DeleteInvoiceAsync(string id)
         {
-            var invoice = await _invoiceRepo.GetAsync(i => i.InvoiceId == id);
+            var invoice = await _invoiceRepo.GetIncludingDeletedAsync(i => i.InvoiceId == id);
             if (invoice == null)
             {
                 return new InvoiceResult

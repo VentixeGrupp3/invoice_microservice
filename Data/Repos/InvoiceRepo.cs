@@ -87,6 +87,7 @@ namespace Data.Repos
         public async Task HardDeleteAsync(string invoiceId)
         {
             var invoice = await _context.Invoices
+                .IgnoreQueryFilters()
                 .FirstOrDefaultAsync(i => i.InvoiceId == invoiceId);
 
             if (invoice is not null)
